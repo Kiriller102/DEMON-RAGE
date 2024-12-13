@@ -1,11 +1,10 @@
-from pkgutil import resolve_name
-
-import pygame
-from settings import *
-from ray_casting import ray_casting
+import sys
 from collections import deque
 from random import randrange
-import sys
+import pygame
+from numba.core.cgutils import false_bit
+
+from settings import *
 
 
 class Drawing:
@@ -29,6 +28,7 @@ class Drawing:
         # menu
         self.menu_trigger = True
         self.menu_picture = pygame.image.load('img/bg.jpg').convert()
+        self.retry_trigger = True
 
         # weapon parameters
         self.weapon_base_sprite = pygame.image.load('sprites/weapons/shotgun/base/0.png').convert_alpha()
@@ -127,16 +127,41 @@ class Drawing:
         self.clock.tick(15)
 
     def lose(self):
+        self.player_life(self.player)
         render = self.font_win.render('YOU LOSE!!',
                                       True,
-                                      (randrange(40, 120), randrange(40, 120), 0))
-        text_rect = render.get_rect()
-        text_rect.center = (HALF_WIDTH, HALF_HEIGHT)
-        bord_rect = pygame.Rect(0, 0, text_rect.width + 50, text_rect.height + 20)
+                                      (randrange(40, 120), 0, 0))
+        lose_rect = render.get_rect()
+        lose_rect.center = (HALF_WIDTH, HALF_HEIGHT - 5 - lose_rect.height // 2)
+
+        retry_label = self.font_win.render('Retry?', True, DARKRED)
+        retry_rect = retry_label.get_rect()
+        retry_rect.center = (HALF_WIDTH, HALF_HEIGHT + 5 + retry_rect.height // 2)
+        retry_button = pygame.Rect(0, 0, retry_rect.width + 30, retry_rect.height + 10)
+        retry_button.center = retry_rect.center
+
+        bord_rect = pygame.Rect(0, 0,
+                                max(lose_rect.width, retry_rect.width) + 50,
+                                retry_rect.height + lose_rect.height + 30)
         bord_rect.center = HALF_WIDTH, HALF_HEIGHT
+
         pygame.draw.rect(self.sc, BLACK, bord_rect, border_radius=50)
-        self.sc.blit(render, text_rect)
+        self.sc.blit(render, lose_rect)
+        pygame.draw.rect(self.sc, DARKGRAY, retry_button, border_radius=50)
+        self.sc.blit(retry_label, retry_rect)
+        pygame.mouse.set_visible(True)
+        pygame.event.set_grab(False)
+
+        if retry_button.collidepoint(pygame.mouse.get_pos()):
+            retry_label = self.font_win.render('Retry?', True, RED)
+            pygame.draw.rect(self.sc, LIGHTGRAY, retry_button, border_radius=50)
+            self.sc.blit(retry_label, retry_rect)
+            if pygame.mouse.get_pressed()[0]:
+                return False
         pygame.display.flip()
+        self.clock.tick(15)
+        return True
+
 
 
     def menu(self):

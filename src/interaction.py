@@ -103,7 +103,15 @@ class Interaction:
             pygame.mixer.music.stop()
             pygame.mixer.music.load('sound/lose.mp3')
             pygame.mixer.music.play()
-            self.drawing.lose()
+            is_retry = True
+            while is_retry:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        exit()
+                is_retry = self.drawing.lose()
+            return False
+        else:
+            return True
 
 
 

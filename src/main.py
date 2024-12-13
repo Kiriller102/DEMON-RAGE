@@ -7,7 +7,6 @@ from interaction import Interaction
 pygame.init()
 sc = pygame.display.set_mode((WIDTH, HEIGHT))
 sc_map = pygame.Surface(MINIMAP_RES)
-
 sprites = Sprites()
 clock = pygame.time.Clock()
 player = Player(sprites)
@@ -15,12 +14,14 @@ drawing = Drawing(sc, sc_map, player, clock)
 interaction = Interaction(player, sprites, drawing)
 
 drawing.menu()
+
 pygame.mouse.set_visible(False)
 interaction.play_music()
 
 fps = FPS
+is_game_active = True
 
-while True:
+while is_game_active:
 
     player.movement()
     drawing.background(player.angle)
@@ -35,6 +36,8 @@ while True:
     interaction.npc_action()
     interaction.clear_world()
     interaction.check_win()
-    interaction.check_die()
+    is_game_active = interaction.check_die()
     pygame.display.flip()
     clock.tick(fps)
+
+print('newGame')

@@ -1,4 +1,5 @@
 import sys
+from asyncio import DatagramTransport
 from collections import deque
 from random import randrange
 import pygame
@@ -99,12 +100,16 @@ class Drawing:
         else:
             self.sc.blit(self.weapon_base_sprite, self.weapon_pos)
 
-    def player_life(self, player):
+    def player_life(self):
         life_font = pygame.font.Font('font/label.ttf', 36)
-        life = life_font.render(f'{player.life}', True, RED)
+        life = life_font.render(f'{self.player.life}', True, RED)
         life_rect = life.get_rect()
         life_rect.x = 10
         life_rect.y = HEIGHT - life_rect.height - 10
+        frame_rect = pygame.Rect(0,0, life_rect.width + 10, life_rect.height + 10)
+        frame_rect.x = 0
+        frame_rect.y = life_rect.y - 10
+        pygame.draw.rect(self.sc, DARKGRAY, frame_rect)
         self.sc.blit(life, life_rect)
 
     def bullet_sfx(self):
@@ -116,6 +121,7 @@ class Drawing:
             self.sfx.rotate(-1)
 
     def win(self):
+        self.bullet_sfx()
         render = self.font_win.render('YOU WIN!!!', True, (randrange(40, 120), 0, 0))
         text_rect = render.get_rect()
         text_rect.center = (HALF_WIDTH, HALF_HEIGHT)
@@ -127,7 +133,7 @@ class Drawing:
         self.clock.tick(15)
 
     def lose(self):
-        self.player_life(self.player)
+        self.player_life()
         render = self.font_win.render('YOU LOSE!!',
                                       True,
                                       (randrange(40, 120), 0, 0))
@@ -137,7 +143,7 @@ class Drawing:
         retry_label = self.font_win.render('Retry?', True, DARKRED)
         retry_rect = retry_label.get_rect()
         retry_rect.center = (HALF_WIDTH, HALF_HEIGHT + 5 + retry_rect.height // 2)
-        retry_button = pygame.Rect(0, 0, retry_rect.width + 30, retry_rect.height + 10)
+        retry_button = pygame.Rect(0, 0, retry_rect.width + 30, retry_rect.height)
         retry_button.center = retry_rect.center
 
         bord_rect = pygame.Rect(0, 0,
@@ -147,21 +153,20 @@ class Drawing:
 
         pygame.draw.rect(self.sc, BLACK, bord_rect, border_radius=50)
         self.sc.blit(render, lose_rect)
-        pygame.draw.rect(self.sc, DARKGRAY, retry_button, border_radius=50)
+        pygame.draw.rect(self.sc, BLACK, retry_button, border_radius=50)
         self.sc.blit(retry_label, retry_rect)
         pygame.mouse.set_visible(True)
         pygame.event.set_grab(False)
 
         if retry_button.collidepoint(pygame.mouse.get_pos()):
             retry_label = self.font_win.render('Retry?', True, RED)
-            pygame.draw.rect(self.sc, LIGHTGRAY, retry_button, border_radius=50)
+            pygame.draw.rect(self.sc, DARKGRAY, retry_button, border_radius=50)
             self.sc.blit(retry_label, retry_rect)
             if pygame.mouse.get_pressed()[0]:
                 return False
         pygame.display.flip()
         self.clock.tick(15)
         return True
-
 
 
     def menu(self):

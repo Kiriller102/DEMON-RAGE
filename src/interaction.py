@@ -46,6 +46,7 @@ class Interaction:
         self.player = player
         self.sprites = sprites
         self.drawing = drawing
+        self.new_game = True
         self.pain_sound = pygame.mixer.Sound('sound/pain.wav')
         self.damage_sound = pygame.mixer.Sound('sound/player_hit.wav')
 
@@ -81,8 +82,11 @@ class Interaction:
             obj.y += 1 if dy < 0 else -1
 
     def nps_damage(self, obj):
-        if abs(obj.distance_to_sprite) < TILE * 1.5:
-            if time.time() - self.player.last_damage_time > 2:
+        if time.time() - self.player.last_damage_time > 2:
+            dx = self.player.pos[0] - obj.pos[0]
+            dy = self.player.pos[1] - obj.pos[1]
+            d = dx * dx + dy * dy
+            if d < (TILE * 2) ** 2:
                 self.player.damage(15)
                 self.player.last_damage_time = time.time()
                 self.damage_sound.play()
@@ -92,7 +96,8 @@ class Interaction:
         # Remove objects marked for deletion
         self.sprites.list_of_objects = [obj for obj in self.sprites.list_of_objects if not obj.delete]
 
-    def play_music(self):
+    @staticmethod
+    def play_music():
         pygame.mixer.pre_init(44100, -16, 2, 2048)
         pygame.mixer.init()
         pygame.mixer.music.load('sound/theme.mp3')
@@ -103,15 +108,15 @@ class Interaction:
             pygame.mixer.music.stop()
             pygame.mixer.music.load('sound/lose.mp3')
             pygame.mixer.music.play()
-            is_retry = True
-            while is_retry:
+            show_retry_menu_loop = True
+            while show_retry_menu_loop:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                         exit()
-                is_retry = self.drawing.lose()
-            return False
+                show_retry_menu_loop = self.drawing.lose()
+            self.new_game = True
         else:
-            return True
+            self.new_game = False
 
 
 

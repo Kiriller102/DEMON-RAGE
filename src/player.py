@@ -7,7 +7,7 @@ from map import collision_walls
 class Player:
     def __init__(self, sprites):
         self.x, self.y = player_pos
-        self.life = 10
+        self.life = 20
         self.sprites = sprites
         self.angle = player_angle
         self.sensitivity = 0.004
@@ -37,8 +37,6 @@ class Player:
             self.life -= hit
         elif self.life <= hit:
             self.life = 0
-
-        # if self.life == 0:
 
 
     def detect_collision(self, dx, dy):
